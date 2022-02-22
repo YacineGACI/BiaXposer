@@ -5,7 +5,7 @@ class InputProcessor:
     """
     def __init__(self, tokenizer, truncation=True):
         self.tokenizer = tokenizer
-        self.truncarion = truncation
+        self.truncation = truncation
 
 
     def tokenize(self, input):
