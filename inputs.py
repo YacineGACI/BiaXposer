@@ -48,7 +48,9 @@ class DoubleInputProcessor(InputProcessor):
     def __init__(self, tokenizer_name, truncation=True):
         super().__init__(tokenizer_name, truncation)
 
-    def tokenize(self, input_1, input_2):
+    def tokenize(self, input):
+        input_1 = input[0]
+        input_2 = input[1]
         return self.tokenizer(input_1, input_2, truncation=self.truncation)
 
 
@@ -65,6 +67,8 @@ class MultipleChoiceInputProcessor(InputProcessor):
     def __init__(self, tokenizer_name, truncation=True):
         super().__init__(tokenizer_name, truncation)
 
-    def tokenize(self, input_1, choices):
+    def tokenize(self, input):
+        input_1 = input[0]
+        choices = input[1]
         input_1 = [input_1] * len(choices)
         return self.tokenizer(input_1, choices, truncation=self.truncation)
