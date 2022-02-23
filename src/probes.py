@@ -1,5 +1,9 @@
 import torch
 
+from src.inputs import SingleInputProcessor
+from src.outputs import SoftmaxOutputProcessor
+from src.transforms import SingleInputSequenceClassificationTemplateTransformer
+
 class Probe:
     def __init__(self, model, bias_types, templates, input_processor=None, output_processor=None, template_transformer=None, no_cuda=False):
         self.model = model
@@ -51,12 +55,7 @@ class Probe:
 
 
 class ProbeForSequenceClassification(Probe):
-    def __init__(self, model, bias_types, templates, input_processor=None, output_processor=None, template_transformer=None, device=False):
-        super().__init__(model, bias_types, templates, input_processor, output_processor, template_transformer, device)
-
-
-
-
+    
     def run(self):
 
         # Initialize the result dictionary
@@ -111,3 +110,18 @@ class ProbeForSequenceClassification(Probe):
 
         return result
 
+
+
+
+
+
+
+
+
+class ProbeForSentimentAnalysis(ProbeForSequenceClassification):
+    def __init__(self, model, tokenizer, bias_types, templates, output_dim=0, no_cuda=False):
+        input_processor = SingleInputProcessor(tokenizer, truncation=True)
+        output_processor = SoftmaxOutputProcessor(output_dim, softmax_dim=1)
+        template_transformer = SingleInputSequenceClassificationTemplateTransformer()
+
+        super().__init__(model, bias_types, templates, input_processor=input_processor, output_processor=output_processor, template_transformer=template_transformer, no_cuda=no_cuda)
