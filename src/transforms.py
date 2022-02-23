@@ -10,7 +10,7 @@ class TemplateTransformer:
 
 class SingleInputSequenceClassificationTemplateTransformer(TemplateTransformer):
     def transform(self, input):
-        return self.group_token + " " + input
+        return (self.group_token + " " + input,)
 
 
 
