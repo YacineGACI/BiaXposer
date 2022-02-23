@@ -25,7 +25,7 @@ class SingleInputProcessor(InputProcessor):
         super().__init__(tokenizer, truncation)
 
     def tokenize(self, input):
-        return self.tokenizer(input, truncation=self.truncation)
+        return self.tokenizer(input[0], truncation=self.truncation)
 
 
 
