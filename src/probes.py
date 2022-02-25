@@ -1,8 +1,9 @@
 import torch
 
 from src.inputs import SingleInputProcessor, DoubleInputProcessor
-from src.outputs import SoftmaxOutputProcessor, MaskedLanguageModelingOutputProcessor
-from src.transforms import SingleInputSequenceClassificationTemplateTransformer, DoubleInputSequenceClassificationTemplateTransformer, MaskedLanguageModelingTemplateTransformer
+from src.outputs import SoftmaxOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor
+from src.transforms import SingleInputSequenceClassificationTemplateTransformer, DoubleInputSequenceClassificationTemplateTransformer, MaskedLanguageModelingTemplateTransformer, QuestionAnsweringTemplateTransformer
+from src.utils import zip_longest_with_cycling
 
 class Probe:
     def __init__(self, model, bias_types, templates, input_processor=None, output_processor=None, template_transformer=None, no_cuda=False):
@@ -234,3 +235,86 @@ class ProbeForParaphraseDetection(ProbeForSequenceClassification):
         template_transformer = DoubleInputSequenceClassificationTemplateTransformer()
 
         super().__init__(model, bias_types, templates, input_processor=input_processor, output_processor=output_processor, template_transformer=template_transformer, no_cuda=no_cuda)
+
+
+
+
+
+
+
+
+
+
+class ProbeForQuestionAnswering(Probe):
+    def __init__(self, model, tokenizer, bias_types, templates, max_num_permutations=20, no_cuda=False):
+        input_processor = DoubleInputProcessor(tokenizer)
+        output_processor = QuestionAsnweringOutputProcessor(tokenizer)
+        template_transformer = QuestionAnsweringTemplateTransformer()
+        self.max_num_permutations = max_num_permutations
+
+        super().__init__(model, bias_types, templates, input_processor, output_processor, template_transformer, no_cuda)
+
+    
+    def run(self):
+        # Initialize the result dictionary
+        result = {
+            "per_template": []
+        }
+
+        # Transform the inputs to the format of the task
+        self.transform_templates()
+
+        for category, task_inputs in self.task_inputs.items():
+            for i, task_input in enumerate(task_inputs):
+
+                scores = {
+                    "template": self.templates[category][i],
+                    "category": category,
+                    "scores": {}
+                }
+
+                for bias_type in self.bias_types:
+
+                    scores["scores"][bias_type.bias_type_name] = {}
+
+                    # Create an index from definition word to group
+                    def_to_group = {}
+                    for group in bias_type.groups.values():
+                        scores["scores"][bias_type.bias_type_name][group.group_name] = []
+                        for def_word in group.definition_words:
+                            def_to_group[def_word] = group.group_name
+                    
+
+                    # Find pairings of definition words across groups
+                    paired_definitions = zip_longest_with_cycling(*[g.definition_words for g in bias_type.groups.values()])
+                    
+                    for pairing in paired_definitions:
+                        
+                        # Replace the <Group> token with group mentions
+                        task_input_for_current_pairing = [self.replace_mask(x, self.template_transformer.group_token, ", ".join(pairing)) for x in task_input]
+
+                        # Tokenize the input
+                        input = self.input_processor.tokenize(task_input_for_current_pairing)
+
+                        # Make tensors and batches of 1
+                        input_tensor = {k: torch.tensor(v).unsqueeze(0).to(self.device) for k, v in input.items()}
+
+                        # Use the model for predictions
+                        output = self.model(**input_tensor)
+
+                        # Extract the scores for the current pairing
+                        sub_scores = self.output_processor.process_output(output, input, pairing)
+                        for def_word, sub_score in sub_scores.items():
+                            scores["scores"][bias_type.bias_type_name][def_to_group[def_word]].append(sub_score)
+
+
+                    # Take the mean of all defintion word subscores to get the score of each group
+                    for g, group_sub_scores in scores["scores"][bias_type.bias_type_name].items():
+                        scores["scores"][bias_type.bias_type_name][g] = sum(group_sub_scores) / len(group_sub_scores)
+
+                # Add all scores of the current template to the overall result
+                result["per_template"].append(scores)
+
+        return result
+
+

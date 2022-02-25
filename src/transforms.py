@@ -30,8 +30,8 @@ class DoubleInputSequenceClassificationTemplateTransformer(TemplateTransformer):
 class QuestionAnsweringTemplateTransformer(TemplateTransformer):
     def transform(self, input):
         return (
-            "There are " + self.group_token + ".",
-            "Who " + input + "?"
+            "Who " + input + "?",
+            "There are " + self.group_token + "."
         )
 
 
