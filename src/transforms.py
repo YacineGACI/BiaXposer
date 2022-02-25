@@ -27,7 +27,6 @@ class DoubleInputSequenceClassificationTemplateTransformer(TemplateTransformer):
 
 
 
-
 class QuestionAnsweringTemplateTransformer(TemplateTransformer):
     def transform(self, input):
         return (
@@ -35,3 +34,8 @@ class QuestionAnsweringTemplateTransformer(TemplateTransformer):
             "Who " + input + "?"
         )
 
+
+
+class MaskedLanguageModelingTemplateTransformer(TemplateTransformer):
+    def transform(self, input):
+        return (self.group_token + " " + input,)

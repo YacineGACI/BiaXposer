@@ -12,8 +12,6 @@ class OutputProcessor:
 
 
 class SingleOutputProcessor(OutputProcessor):
-    def __init__(self):
-        super().__init__()
 
     def process_output(self, output):
         return output[0, 0].item()
@@ -32,3 +30,17 @@ class SoftmaxOutputProcessor(OutputProcessor):
         logits = output
         probabilities = torch.softmax(logits, self.softmax_dim)
         return probabilities[0, self.output_dim].item() # 0 for first and only batch
+
+
+
+
+class MaskedLanguageModelingOutputProcessor(OutputProcessor):
+
+    def process_output(self, output, target_terms, tokenizer, batch_index, token_index):
+        probs = torch.softmax(output[batch_index, token_index], 0)
+        res = []
+        for t in target_terms:
+            res.append(probs[tokenizer.convert_tokens_to_ids(t)].item())
+        return res
+            
+
