@@ -66,7 +66,7 @@ class QuestionAsnweringOutputProcessor(OutputProcessor):
 
         res = {}
         for t in target_terms:
-            current_term_tokens = self.tokenizer(t)
+            current_term_tokens = self.tokenizer(" " + t) # Plus space because Roberta changes the token id when it is first in in the input 
             term_start_position, term_end_position = find_span_edges(input['input_ids'], current_term_tokens['input_ids'], sep_token_id)
             this_term_score = start_probs[0, term_start_position] + end_probs[0, term_end_position]
             res[t] = this_term_score.item()

@@ -292,7 +292,7 @@ class ProbeForQuestionAnswering(Probe):
                         
                         # Replace the <Group> token with group mentions
                         task_input_for_current_pairing = [self.replace_mask(x, self.template_transformer.group_token, ", ".join(pairing)) for x in task_input]
-
+                        
                         # Tokenize the input
                         input = self.input_processor.tokenize(task_input_for_current_pairing)
 
