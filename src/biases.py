@@ -1,4 +1,19 @@
-import logging
+import logging, json
+
+
+
+def read_biases(filepath):
+    biases = []
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+        for bias_type, groups in data.items():
+            biases.append(
+                BiasType(bias_type, groups={
+                    group_name: Group(group_name, definition_words) for group_name, definition_words in groups.items()
+                })
+            )
+    return biases
+
 
 
 class Group:
@@ -20,6 +35,9 @@ class Group:
 
     def __str__(self):
         return "{}: [{}]".format(self.group_name.capitalize(), ", ".join(self.definition_words))
+
+    def __repr__(self):
+        return self.__str__()
 
 
 
@@ -61,3 +79,6 @@ class BiasType:
         for k, v in self.groups.items():
             return_string += "\t" + v.__str__() + "\n"
         return return_string
+
+    def __repr__(self):
+        return self.__str__()
