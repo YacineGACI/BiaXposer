@@ -3,9 +3,10 @@ class InputProcessor:
         Tokenizes the Input according to the task model.
         Returns a dictionary of input_ids, attention_masks and token_type_ids
     """
-    def __init__(self, tokenizer, truncation=True):
+    def __init__(self, tokenizer, truncation=True, padding="do_not_pad"):
         self.tokenizer = tokenizer
         self.truncation = truncation
+        self.padding = padding
 
 
     def tokenize(self, input):
@@ -58,10 +59,10 @@ class MultipleChoiceInputProcessor(InputProcessor):
         Toeknizes inputs consisting of a context, and multiple choices.
     """
     def __init__(self, tokenizer, truncation=True):
-        super().__init__(tokenizer, truncation)
+        super().__init__(tokenizer, truncation, padding='longest')
 
     def tokenize(self, input):
         input_1 = input[0]
         choices = input[1]
         input_1 = [input_1] * len(choices)
-        return self.tokenizer(input_1, choices, truncation=self.truncation)
+        return self.tokenizer(input_1, choices, truncation=self.truncation, padding=self.padding)

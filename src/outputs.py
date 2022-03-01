@@ -74,3 +74,13 @@ class QuestionAsnweringOutputProcessor(OutputProcessor):
         return res
 
 
+
+
+class MultipleChoiceOutputProcessor(OutputProcessor):
+    def process_output(self, output):
+        logits = output.logits.squeeze()
+        probs = torch.softmax(logits, dim=0)
+        
+        return [p.item() for p in probs]
+
+

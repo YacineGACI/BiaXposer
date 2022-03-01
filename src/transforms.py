@@ -39,3 +39,13 @@ class QuestionAnsweringTemplateTransformer(TemplateTransformer):
 class MaskedLanguageModelingTemplateTransformer(TemplateTransformer):
     def transform(self, input):
         return (self.group_token + " " + input,)
+
+
+
+
+class MultipleChoiceTemplateTransformer(TemplateTransformer):
+    def transform(self, input):
+        return (
+            "They " + input + ".",
+            "That's because they are " + self.group_token + "."
+        )
