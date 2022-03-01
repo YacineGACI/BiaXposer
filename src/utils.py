@@ -1,3 +1,5 @@
+import json
+
 def zip_longest_with_cycling(*args):
     '''
         zips the set of lists in the input, and iterates over the longest list passed with cycling for the shorter lists 
@@ -37,3 +39,11 @@ def find_span_edges(context, answer, sep_token_id):
         end_pos = 1
 
     return start_pos, end_pos
+
+
+
+
+def read_templates(filepath):
+    with open(filepath, 'r') as f:
+        templates = json.load(f)
+    return templates
