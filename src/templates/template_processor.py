@@ -1,3 +1,4 @@
+from dataclasses import replace
 import os, json, re
 
 class TemplateProcessor:
@@ -137,7 +138,15 @@ class TemplateProcessor:
 
     def process_template(self, template):
         # Make implicit references explicit
-        template = re.sub(r"(<)(?!group)(\w+)(>)", r"\1\2:1\3", template)
+        # template = re.sub(r"(<)(?!group)(\w+)(>)", r"\1\2:1\3", template)
+        implicit_tokens = re.findall(r"<(?!group)\w+>", template)
+        count_per_token = {}
+        for i_t in implicit_tokens:
+            if i_t not in count_per_token.keys():
+                count_per_token[i_t] = 1
+            replacement= "{}:{}>".format(i_t.split(">")[0], count_per_token[i_t])
+            template = template.replace(i_t, replacement, 1)
+            count_per_token[i_t] += 1
 
         # Get all matched tokens
         matched_tokens = list(set(re.findall(r"<(?!group)\w+:[0-9]+>", template)))
