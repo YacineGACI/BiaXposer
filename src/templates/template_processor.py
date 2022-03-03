@@ -1,7 +1,7 @@
-import os, json
+import os, json, re
 
 class TemplateProcessor:
-    def __init__(self, templates_path, fillings_path, supported_file_type="json"):
+    def __init__(self, templates_path, fillings_path, supported_file_type="json", group_token="<group>"):
         """
         @templates_path: filepath or directory to structurl templates
         @fillings_path: filepath or directory to tokens that fill templates
@@ -9,16 +9,26 @@ class TemplateProcessor:
         self.templates_path = templates_path
         self.fillings_path = fillings_path
         self.supported_file_type = supported_file_type
+        self.group_token = group_token
 
         self.template_files = None
         self.fillings_files = None
+        self.all_templates = None
+        self.all_fillings = None
+        self.token_to_filling_indices = None
+        self.token_hierarchies = None
+        self.generations = None
         
         # Read file(s) in @templates_path
         self.template_files = self.get_all_files(templates_path, check_extension=True)
+        self.read_templates()
 
         # Read file(s) in @fillings_path
         self.fillings_files = self.get_all_files(fillings_path, check_extension=False)
         self.read_fillings()
+
+        # Generate all templates
+        self.process_templates()
         
 
 
@@ -92,9 +102,66 @@ class TemplateProcessor:
 
 
 
+    def read_templates_file(self, filepath):
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        return data["templates"]
+
+
+
+    def read_templates(self):
+        self.all_templates = []
+        for f in self.template_files:
+            self.all_templates += self.read_templates_file(f)
         
+
 
         
 
+        
+    def process_templates(self):
+        # Don't forget to also code the part about the same token such as <verb:1> <verb:2>
+        self.generations = []
+        for t in self.all_templates:
+            self.generations += [{
+                "text": g,
+                "class": t["class"]
+            } for g in self.process_template(t["text"]) ]
+            
+
+
+
+
+
+
+
+    def process_template(self, template):
+        # Make implicit references explicit
+        template = re.sub(r"(<)(?!group)(\w+)(>)", r"\1\2:1\3", template)
+
+        # Get all matched tokens
+        matched_tokens = list(set(re.findall(r"<(?!group)\w+:[0-9]+>", template)))
+
+        # Replace all tokens
+        return self.generate(template, matched_tokens)
+
+
+
+
+
+    def generate(self, template, remaining_tokens):
+        if len(remaining_tokens) == 0:
+            return [template]
+        else:
+            current_token = remaining_tokens[0]
+            current_token_name = current_token.strip("<>").split(":")[0] # Remove <> and :
+            if current_token_name not in self.token_to_filling_indices.keys():
+                raise ValueError
+            else:
+                generations = []
+                for i in self.token_to_filling_indices[current_token_name]:
+                    generations += self.generate(template.replace(current_token, self.all_fillings[i]), remaining_tokens[1:])
+            
+                return generations
 
 
