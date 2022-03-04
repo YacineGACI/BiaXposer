@@ -11,6 +11,20 @@ class OutputProcessor:
 
 
 
+class PredictionOutputProcessor(OutputProcessor):
+    def __init__(self, do_softmax=True):
+        self.do_softmax = do_softmax
+        super().__init__()
+
+    def process_output(self, output):
+        logits = output.logits
+        if self.do_softmax:
+            return torch.softmax(logits, 1)
+        else:
+            return logits
+
+
+
 
 class SingleOutputProcessor(OutputProcessor):
 

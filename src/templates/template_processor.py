@@ -1,8 +1,7 @@
-from dataclasses import replace
 import os, json, re
 
 class TemplateProcessor:
-    def __init__(self, templates_path, fillings_path, supported_file_type="json", group_token="<group>"):
+    def __init__(self, templates_path, fillings_path, supported_file_type="json"):
         """
         @templates_path: filepath or directory to structurl templates
         @fillings_path: filepath or directory to tokens that fill templates
@@ -10,8 +9,8 @@ class TemplateProcessor:
         self.templates_path = templates_path
         self.fillings_path = fillings_path
         self.supported_file_type = supported_file_type
-        self.group_token = group_token
 
+        self.group_token = None
         self.template_files = None
         self.fillings_files = None
         self.all_templates = None
@@ -106,14 +105,15 @@ class TemplateProcessor:
     def read_templates_file(self, filepath):
         with open(filepath, 'r') as f:
             data = json.load(f)
-        return data["templates"]
+        return data["group_token"], data["templates"]
 
 
 
     def read_templates(self):
         self.all_templates = []
         for f in self.template_files:
-            self.all_templates += self.read_templates_file(f)
+            self.group_token, templates = self.read_templates_file(f)
+            self.all_templates += templates
         
 
 
