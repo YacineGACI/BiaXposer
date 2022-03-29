@@ -8,6 +8,36 @@ from src.transforms import SingleInputSequenceClassificationTemplateTransformer,
 from src.utils import zip_longest_with_cycling
 
 
+
+class TaskOutput:
+    def __init__(self, output, sentence_id, def_word, group, bias_type, gold_label):
+        self.output = output
+        self.sentence_id = sentence_id
+        self.def_word = def_word
+        self.group = group
+        self.bias_type = bias_type
+        self.gold_label = gold_label
+
+
+    def __str__(self):
+        return '''
+            output: {},
+            id: {},
+            def_word: {},
+            group: {},
+            bias_type: {},
+            gold_label: {}
+        
+        '''.format(self.output, self.sentence_id, self.def_word, self.group, self.bias_type, self.gold_label)
+
+
+    def __repr__(self):
+        return self.__str__()
+
+
+
+
+
 class Task:
     def __init__(self, model, bias_types, templates, group_token, input_processor=None, output_processor=None, no_cuda=False):
         self.model = model
@@ -50,18 +80,16 @@ class Task:
 class SequenceClassificationTask(Task):
     
     def run(self):
-        
-        for i, template in tqdm.tqdm(enumerate(self.templates)):
 
-            scores = {}
+        scores = []
+        
+        for template_id, template in tqdm.tqdm(enumerate(self.templates)):
 
             for bias_type in self.bias_types:
 
-                scores[bias_type.bias_type_name] = {}
-
                 for group in bias_type.groups.values():
 
-                    scores[bias_type.bias_type_name][group.group_name] = {}
+                    # scores[bias_type.bias_type_name][group.group_name] = {}
 
                     for def_word in group.definition_words:
                         
@@ -80,10 +108,18 @@ class SequenceClassificationTask(Task):
                         # Process the output
                         logits = self.output_processor.process_output(output)
 
-                        scores[bias_type.bias_type_name][group.group_name][def_word] = logits.squeeze().tolist()
-
-                    
-            self.templates[i]["output"] = scores
+                        scores.append(
+                            TaskOutput(
+                                output=logits.squeeze().tolist(),
+                                sentence_id=template_id,
+                                def_word=def_word,
+                                group=group.group_name,
+                                bias_type=bias_type.bias_type_name,
+                                gold_label=template["class"]
+                            )
+                        )
+        
+        return scores
             
 
 
