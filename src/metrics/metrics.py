@@ -131,6 +131,7 @@ class PairwiseComparisonMetric(BiasMetric):
 
     def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
         processed_task_output = self.process_task_output_to_counterfactual(task_output)
+
         bias_scores = {
             k: 0 for k in processed_task_output.keys()
         }
@@ -293,4 +294,53 @@ class BackgroundComparisonMetric(BiasMetric):
 
 
 class MultigroupComparisonMetric(BiasMetric):
-    pass
+    
+    def bias_group(self, task_output, scoring_fct, distance_fct):
+        processed_task_output = self.process_task_output_to_group(task_output)
+
+        bias_scores = {
+            k: 0 for k in processed_task_output.keys()
+        }
+
+        for bias_type in processed_task_output.keys():
+
+            bias_scores[bias_type] = distance_fct(
+                [
+                    scoring_fct(
+                        processed_task_output[bias_type][g]["predictions"],
+                        processed_task_output[bias_type][g]["labels"]
+                    ) for g in processed_task_output[bias_type].keys()
+                ]
+            )
+        
+        return bias_scores
+
+
+
+
+
+    def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
+        processed_task_output = self.process_task_output_to_counterfactual(task_output)
+
+        bias_scores = {
+            k: 0 for k in processed_task_output.keys()
+        }
+
+        for bias_type in processed_task_output.keys():
+            current_bias_score = 0
+            num_sentences = len(processed_task_output[bias_type].keys())
+
+            for s_id in processed_task_output[bias_type].keys():
+                current_bias_score += distance_fct(
+                    [
+                        scoring_fct(
+                            processed_task_output[bias_type][s_id][g]["predictions"],
+                            processed_task_output[bias_type][s_id][g]["labels"]
+                        ) for g in processed_task_output[bias_type][s_id].keys()
+                    ]
+                )
+            
+            current_bias_score /= num_sentences
+            bias_scores[bias_type] = current_bias_score
+
+        return bias_scores
