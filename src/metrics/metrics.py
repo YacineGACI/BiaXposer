@@ -39,8 +39,8 @@ class BiasMetric:
                     "labels": []
                 }
 
-            result[o.bias_type][o.group]["pred"].append(o.output)
-            result[o.bias_type][o.group]["label"].append(o.gold_label)
+            result[o.bias_type][o.group]["predictions"].append(o.output)
+            result[o.bias_type][o.group]["labels"].append(o.gold_label)
         
         return result
 
@@ -66,8 +66,8 @@ class BiasMetric:
                     "labels": []
                 }
 
-            result[o.bias_type][o.sentence_id][o.group]["pred"].append(o.output)
-            result[o.bias_type][o.sentence_id][o.group]["label"].append(o.gold_label)
+            result[o.bias_type][o.sentence_id][o.group]["predictions"].append(o.output)
+            result[o.bias_type][o.sentence_id][o.group]["labels"].append(o.gold_label)
         
         return result
 
@@ -106,8 +106,7 @@ class PairwiseComparisonMetric(BiasMetric):
             current_bias_score = 0
 
             groups = processed_task_output[bias_type].keys()
-
-            group_combinations = itertools.combinations(groups, 2)
+            group_combinations = list(itertools.combinations(list(groups), 2))
             for g1, g2 in group_combinations:
                 current_bias_score += distance_fct(
                     scoring_fct(
@@ -142,7 +141,7 @@ class PairwiseComparisonMetric(BiasMetric):
 
             for s_id in processed_task_output[bias_type].keys():
                 groups = processed_task_output[bias_type][s_id].keys()
-                group_combinations = itertools.combinations(groups, 2)
+                group_combinations = list(itertools.combinations(groups, 2))
 
                 for g1, g2 in group_combinations:
                     current_bias_score += distance_fct(
@@ -214,7 +213,7 @@ class BackgroundComparisonMetric(BiasMetric):
 
         for bias_type in processed_task_output.keys():
             
-            background_score = self.background_scoring(task_output[bias_type], scoring_fct)
+            background_score = self.background_scoring(processed_task_output[bias_type], scoring_fct)
             current_bias_score = 0
 
             for group in processed_task_output[bias_type].keys():
@@ -248,7 +247,7 @@ class BackgroundComparisonMetric(BiasMetric):
             num_sentences = len(processed_task_output[bias_type].keys())
 
             for s_id in processed_task_output[bias_type].keys():
-                background_score = self.background_scoring(task_output[bias_type][s_id], scoring_fct)
+                background_score = self.background_scoring(processed_task_output[bias_type][s_id], scoring_fct)
                 num_groups = len(processed_task_output[bias_type][s_id].keys())
 
                 for group in processed_task_output[bias_type][s_id].keys():
