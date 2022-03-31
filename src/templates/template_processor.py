@@ -10,7 +10,8 @@ class TemplateProcessor:
         self.fillings_path = fillings_path
         self.supported_file_type = supported_file_type
 
-        self.group_token = None
+        self.group_token = None # Token to represent the group
+        self.label_name = None # Key in the template json that represents the label
         self.template_files = None
         self.fillings_files = None
         self.all_templates = None
@@ -18,6 +19,8 @@ class TemplateProcessor:
         self.token_to_filling_indices = None
         self.token_hierarchies = None
         self.generations = None
+
+        self.concatentaion_token = "|" # This is very specific to generating sentences from templates
         
         # Read file(s) in @templates_path
         self.template_files = self.get_all_files(templates_path, check_extension=True)
@@ -105,14 +108,14 @@ class TemplateProcessor:
     def read_templates_file(self, filepath):
         with open(filepath, 'r') as f:
             data = json.load(f)
-        return data["group_token"], data["templates"]
+        return data["group_token"], data["label_name"], data["templates"]
 
 
 
     def read_templates(self):
         self.all_templates = []
         for f in self.template_files:
-            self.group_token, templates = self.read_templates_file(f)
+            self.group_token, self.label_name, templates = self.read_templates_file(f)
             self.all_templates += templates
         
 
@@ -124,10 +127,20 @@ class TemplateProcessor:
         # Don't forget to also code the part about the same token such as <verb:1> <verb:2>
         self.generations = []
         for t in self.all_templates:
-            self.generations += [{
-                "text": g,
-                "class": t["class"]
-            } for g in self.process_template(t["text"]) ]
+            concatenation_values = self.concatentaion_token.join([v for k, v in t.items() if k != self.label_name])
+            concatenation_keys = [k for k in list(t.keys()) if k != self.label_name]
+
+            generated_values = self.process_template(concatenation_values)
+
+            for g in generated_values:
+                g = g.split(self.concatentaion_token)
+                new_generation = {
+                    self.label_name: t[self.label_name]
+                }
+                for i in range(len(concatenation_keys)):
+                    new_generation[concatenation_keys[i]] = g[i]
+                self.generations.append(new_generation)
+
             
 
 
