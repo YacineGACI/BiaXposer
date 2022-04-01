@@ -8,8 +8,11 @@ class ScoringFunction:
 
 
 class F1_Score(ScoringFunction):
+    def __init__(self, average="binary"):
+        self.average = average
+
     def __call__(self, predictions, labels):
-        return f1_score(labels, [np.argmax(p) for p in predictions])
+        return f1_score(labels, [np.argmax(p) for p in predictions], average=self.average)
 
 
 
@@ -20,14 +23,20 @@ class Accuracy_Score(ScoringFunction):
 
 
 class Precision_Score(ScoringFunction):
+    def __init__(self, average="binary"):
+        self.average = average
+
     def __call__(self, predictions, labels):
-        return precision_score(labels, [np.argmax(p) for p in predictions])
+        return precision_score(labels, [np.argmax(p) for p in predictions], average=self.average)
 
 
 
 class Recall_Score(ScoringFunction):
+    def __init__(self, average="binary"):
+        self.average = average
+        
     def __call__(self, predictions, labels):
-        return recall_score(labels, [np.argmax(p) for p in predictions])
+        return recall_score(labels, [np.argmax(p) for p in predictions], average=self.average)
 
 
 

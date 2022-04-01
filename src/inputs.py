@@ -38,7 +38,7 @@ class DoubleInputProcessor(InputProcessor):
     """
         Tokenizes inputs consisting of two sentences, e.g. Textual Entailment, Paraphrase Detection, Question Answering...
     """
-    def tokenize(self, input):
+    def tokenize(self, input, input_names=None):
         input_names = input_names if input_names is not None else self.input_names
         return self.tokenizer(input[input_names[0]], input[input_names[1]], truncation=self.truncation)
 
