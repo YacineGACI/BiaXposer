@@ -1,4 +1,5 @@
 from audioop import bias
+from concurrent.futures import process
 import itertools
 
 class BiasMetric:
@@ -94,8 +95,8 @@ class BiasMetric:
 class PairwiseComparisonMetric(BiasMetric):
     
     def bias_group(self, task_output, scoring_fct, distance_fct):
-
         processed_task_output = self.process_task_output_to_group(task_output)
+        # print(processed_task_output)
 
         bias_scores = {
             k: 0 for k in processed_task_output.keys()
