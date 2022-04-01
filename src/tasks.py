@@ -39,13 +39,14 @@ class TaskOutput:
 
 
 class Task:
-    def __init__(self, model, bias_types, templates, group_token, input_processor=None, output_processor=None, no_cuda=False):
+    def __init__(self, model, bias_types, templates, group_token, label_name, input_processor=None, output_processor=None, no_cuda=False):
         self.model = model
         self.bias_types = bias_types
         self.templates = templates
         self.input_processor = input_processor
         self.output_processor = output_processor
         self.group_token = group_token
+        self.label_name = label_name
         self.device = 'cuda' if not no_cuda and torch.cuda.is_available() else 'cpu'
 
         self.model.to(self.device)
@@ -115,7 +116,7 @@ class SequenceClassificationTask(Task):
                                 def_word=def_word,
                                 group=group.group_name,
                                 bias_type=bias_type.bias_type_name,
-                                gold_label=template["class"]
+                                gold_label=template[self.label_name]
                             )
                         )
         

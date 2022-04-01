@@ -12,6 +12,7 @@ class TemplateProcessor:
 
         self.group_token = None # Token to represent the group
         self.label_name = None # Key in the template json that represents the label
+        self.input_names = None # List of inputs to the task
         self.template_files = None
         self.fillings_files = None
         self.all_templates = None
@@ -108,14 +109,14 @@ class TemplateProcessor:
     def read_templates_file(self, filepath):
         with open(filepath, 'r') as f:
             data = json.load(f)
-        return data["group_token"], data["label_name"], data["templates"]
+        return data["group_token"], data["input_names"], data["label_name"], data["templates"]
 
 
 
     def read_templates(self):
         self.all_templates = []
         for f in self.template_files:
-            self.group_token, self.label_name, templates = self.read_templates_file(f)
+            self.group_token, self.input_names, self.label_name, templates = self.read_templates_file(f)
             self.all_templates += templates
         
 

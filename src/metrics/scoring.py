@@ -32,11 +32,11 @@ class Recall_Score(ScoringFunction):
 
 
 class ClassPrediction_Score(ScoringFunction):
-
     def __init__(self, class_id=None):
         self.class_id = class_id
 
-    def __call_(self, predictions, labels=None):
+    def __call__(self, predictions, labels=None):
+        # print(predictions)
         res = []
         for i, p in enumerate(predictions):
             class_id = self.class_id if self.class_id is not None else labels[i]
