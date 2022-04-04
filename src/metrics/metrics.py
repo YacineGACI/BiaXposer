@@ -1,10 +1,9 @@
-from audioop import bias
-from concurrent.futures import process
 import itertools
+from src.utils import EvalParametrizationError
 
 class BiasMetric:
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        self.name = name
 
 
     def bias(self, task_output, scoring_fct, distance_fct, mode="group"):
@@ -75,6 +74,16 @@ class BiasMetric:
 
 
 
+    def check_matching_eval_parameters(self, scoring_fct, distance_fct):
+        if self.name not in distance_fct.eval_type:
+            raise EvalParametrizationError("{} is not suitable for {} evaluation".format(distance_fct.name, self.name))
+        if distance_fct.data_type != scoring_fct.data_type:
+            raise EvalParametrizationError("{} and {} are not compatible".format(distance_fct.name, scoring_fct.name))
+
+
+
+
+
 
 
 
@@ -93,8 +102,13 @@ class BiasMetric:
 
 
 class PairwiseComparisonMetric(BiasMetric):
+
+    def __init__(self):
+        super().__init__("pcm")
     
     def bias_group(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+
         processed_task_output = self.process_task_output_to_group(task_output)
         # print(processed_task_output)
 
@@ -130,6 +144,8 @@ class PairwiseComparisonMetric(BiasMetric):
     
 
     def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
         processed_task_output = self.process_task_output_to_counterfactual(task_output)
 
         bias_scores = {
@@ -192,6 +208,9 @@ class PairwiseComparisonMetric(BiasMetric):
 
 class BackgroundComparisonMetric(BiasMetric):
 
+    def __init__(self):
+        super().__init__("bcm")
+
     def background_scoring(self, all_group_scores, scoring_fct):
         predictions = []
         labels = []
@@ -206,6 +225,8 @@ class BackgroundComparisonMetric(BiasMetric):
 
 
     def bias_group(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
         processed_task_output = self.process_task_output_to_group(task_output)
 
         bias_scores = {
@@ -237,6 +258,8 @@ class BackgroundComparisonMetric(BiasMetric):
     
 
     def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
         processed_task_output = self.process_task_output_to_counterfactual(task_output)
 
         bias_scores = {
@@ -294,8 +317,13 @@ class BackgroundComparisonMetric(BiasMetric):
 
 
 class MultigroupComparisonMetric(BiasMetric):
+
+    def __init__(self):
+        super().__init__("mcm")
     
     def bias_group(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
         processed_task_output = self.process_task_output_to_group(task_output)
 
         bias_scores = {
@@ -320,6 +348,8 @@ class MultigroupComparisonMetric(BiasMetric):
 
 
     def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
         processed_task_output = self.process_task_output_to_counterfactual(task_output)
 
         bias_scores = {

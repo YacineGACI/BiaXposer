@@ -47,3 +47,9 @@ def read_templates(filepath):
     with open(filepath, 'r') as f:
         templates = json.load(f)
     return templates
+
+
+
+
+class EvalParametrizationError(Exception):
+    pass
