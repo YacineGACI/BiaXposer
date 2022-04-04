@@ -1,7 +1,7 @@
 from audioop import bias
 from src.templates.template_processor import TemplateProcessor
 from src.biases import read_biases
-from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric
+from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric
 from src.inputs import SingleInputProcessor, DoubleInputProcessor
 from src.outputs import PredictionOutputProcessor
 from src.tasks import SequenceClassificationTask
@@ -27,7 +27,7 @@ class TaskSpecificPipeline:
         self.bias_types = None
         self.task_scores = None
         self.metric = None
-        self.all_eval_types = ["pcm", "bcm"]
+        self.all_eval_types = ["pcm", "bcm", "mcm"]
         self.all_eval_modes = ["group", "counterfactual"]
 
         self.read_bias_types()
@@ -61,6 +61,8 @@ class TaskSpecificPipeline:
             self.metric = PairwiseComparisonMetric()
         elif type == "bcm":
             self.metric = BackgroundComparisonMetric()
+        elif type == "mcm":
+            self.metric = MultigroupComparisonMetric()
         else:
             raise ValueError
 

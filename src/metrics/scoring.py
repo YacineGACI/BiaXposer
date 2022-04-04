@@ -45,9 +45,22 @@ class ClassPrediction_Score(ScoringFunction):
         self.class_id = class_id
 
     def __call__(self, predictions, labels=None):
-        # print(predictions)
         res = []
         for i, p in enumerate(predictions):
             class_id = self.class_id if self.class_id is not None else labels[i]
             res.append(p[class_id])
         return res
+
+
+
+
+class AverageClassPrediction_Score(ScoringFunction):
+    def __init__(self, class_id=None):
+        self.class_id = class_id
+
+    def __call__(self, predictions, labels=None):
+        res = []
+        for i, p in enumerate(predictions):
+            class_id = self.class_id if self.class_id is not None else labels[i]
+            res.append(p[class_id])
+        return sum(res) / len(res)
