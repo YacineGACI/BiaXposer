@@ -121,32 +121,28 @@ class TemplateProcessor:
         
 
 
-        
 
-        
     def process_templates(self):
-        # Don't forget to also code the part about the same token such as <verb:1> <verb:2>
         self.generations = []
         for t in self.all_templates:
-            concatenation_values = self.concatentaion_token.join([v for k, v in t.items() if k != self.label_name])
-            concatenation_keys = [k for k in list(t.keys()) if k != self.label_name]
+            concatenation_values = self.concatentaion_token.join([v for k, v in t.items() if type(v) == str])
+            concatenation_keys = [k for k, v in t.items() if type(v) == str]
 
             generated_values = self.process_template(concatenation_values)
 
             for g in generated_values:
                 g = g.split(self.concatentaion_token)
-                new_generation = {
-                    self.label_name: t[self.label_name]
-                }
+                if self.label_name not in concatenation_keys:
+                    new_generation = {
+                        self.label_name: t[self.label_name]
+                    }
+                else:
+                    new_generation = {}
                 for i in range(len(concatenation_keys)):
                     new_generation[concatenation_keys[i]] = g[i]
                 self.generations.append(new_generation)
 
             
-
-
-
-
 
 
 
