@@ -1,6 +1,7 @@
 import tqdm
 
 import torch
+from transformers import pipeline
 
 from src.inputs import SingleInputProcessor, DoubleInputProcessor, MultipleChoiceInputProcessor
 from src.outputs import SoftmaxOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor, MultipleChoiceOutputProcessor
@@ -90,8 +91,6 @@ class SequenceClassificationTask(Task):
 
                 for group in bias_type.groups.values():
 
-                    # scores[bias_type.bias_type_name][group.group_name] = {}
-
                     for def_word in group.definition_words:
                         
                         # Replace the <Group> token with current definition word
@@ -122,6 +121,71 @@ class SequenceClassificationTask(Task):
         
         return scores
             
+
+
+
+
+
+
+
+
+
+class LanguageModelingTask(Task):
+
+    def get_mask_position(self, input_ids):
+        "Finds the position of the [MASK] in the input"
+        mask_id = self.input_processor.tokenizer.convert_tokens_to_ids(self.input_processor.tokenizer.mask_token)
+        batch_index, token_index = (input_ids == mask_id).nonzero(as_tuple=True)
+        return batch_index.item(), token_index.item()
+
+
+
+    def run(self):
+
+        scores = []
+        
+        for template_id, template in tqdm.tqdm(enumerate(self.templates)):
+
+            for bias_type in self.bias_types:
+
+                for group in bias_type.groups.values():
+
+                    for def_word in group.definition_words:
+                        
+                        # Replace the <Group> token with current definition word
+                        input = {k:v if k not in self.input_processor.input_names else self.replace_mask(v, self.group_token, def_word) for k, v in template.items()}
+
+                        # Tokenize the input
+                        input = self.input_processor.tokenize(input)
+
+                        # Make tensors and batches of 1
+                        input = {k: torch.tensor(v).unsqueeze(0).to(self.device) for k, v in input.items()}
+
+                        # Find the position of the mask token
+                        batch_index, token_index = self.get_mask_position(input["input_ids"])
+
+                        # Use the model for predictions
+                        output = self.model(**input)
+
+                        # Extract the necessary score for the current definition word
+                        target_term_probs = self.output_processor.process_output(output.logits, template[self.label_name], self.input_processor.tokenizer, batch_index, token_index)
+
+                        scores.append(
+                            TaskOutput(
+                                output=target_term_probs,
+                                sentence_id=template_id,
+                                def_word=def_word,
+                                group=group.group_name,
+                                bias_type=bias_type.bias_type_name,
+                                gold_label=template[self.label_name]
+                            )
+                        )
+        
+        return scores
+
+
+
+
 
 
 

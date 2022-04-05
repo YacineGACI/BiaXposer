@@ -1,10 +1,9 @@
-from audioop import bias
 from src.templates.template_processor import TemplateProcessor
 from src.biases import read_biases
 from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric
 from src.inputs import SingleInputProcessor, DoubleInputProcessor
-from src.outputs import PredictionOutputProcessor
-from src.tasks import SequenceClassificationTask
+from src.outputs import PredictionOutputProcessor, MaskedLanguageModelingOutputProcessor
+from src.tasks import SequenceClassificationTask, LanguageModelingTask
 
 
 class TaskSpecificPipeline:
@@ -97,3 +96,14 @@ class TextualInferencePipeline(TaskSpecificPipeline):
         self.input_processor = DoubleInputProcessor(self.tokenizer, self.template_processor.input_names)
         self.output_processor = PredictionOutputProcessor()
         self.task = SequenceClassificationTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
+
+
+
+
+class LanguageModelingPipeline(TaskSpecificPipeline):
+    def __init__(self, model, tokenizer, bias_path, template_path, fillings_path):
+        self.generic_init(model, tokenizer, bias_path, template_path, fillings_path)
+        self.input_processor = SingleInputProcessor(self.tokenizer, self.template_processor.input_names)
+        self.output_processor = MaskedLanguageModelingOutputProcessor()
+        self.task = LanguageModelingTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
+        
