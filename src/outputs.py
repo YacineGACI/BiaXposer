@@ -51,12 +51,22 @@ class SoftmaxOutputProcessor(OutputProcessor):
 
 class MaskedLanguageModelingOutputProcessor(OutputProcessor):
 
-    def process_output(self, output, target_terms, tokenizer, batch_index, token_index):
+    def process_output(self, output, target_terms, tokenizer, batch_index, token_index, topk):
         probs = torch.softmax(output[batch_index, token_index], 0)
+
         res = []
         for t in target_terms:
             res.append(probs[tokenizer.convert_tokens_to_ids(t)].item())
-        return res
+
+        top_k_indices = torch.topk(probs, topk).indices
+        top_res = []
+        for t in target_terms:
+            if tokenizer.convert_tokens_to_ids(t) in top_k_indices:
+                top_res.append(True)
+            else:
+                top_res.append(False)
+        
+        return res, top_res
             
 
 

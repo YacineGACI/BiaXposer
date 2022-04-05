@@ -77,3 +77,53 @@ class AverageClassPrediction_Score(ScoringFunction):
             class_id = self.class_id if self.class_id is not None else labels[i]
             res.append(p[class_id])
         return sum(res) / len(res)
+
+
+
+
+
+class Likelihood_Score(ScoringFunction):
+    def __init__(self, word_id=None):
+        self.word_id = word_id
+        super().__init__("Likelihood", set_data_type)
+
+    def __call__(self, predictions, labels=None):
+        res = []
+        for p in predictions:
+            if self.word_id is not None:
+                res.append(p[self.word_id])
+            else:
+                res.append(sum(p) / len(p))
+        return res
+
+
+
+
+class AverageLikelihood_Score(ScoringFunction):
+    def __init__(self, word_id=None):
+        self.word_id = word_id
+        super().__init__("Average Likelihood", singleton_data_type)
+
+    def __call__(self, predictions, labels=None):
+        res = []
+        for p in predictions:
+            if self.word_id is not None:
+                res.append(p[self.word_id])
+            else:
+                res.append(sum(p) / len(p))
+        return sum(res) / len(res)
+
+
+
+
+class AccuracyForLM_Score(ScoringFunction):
+    def __init__(self):
+        super().__init__("Accuracy for LM", singleton_data_type)
+
+    
+    def __call__(self, predictions, labels):
+        accuracy = 0
+        for l in labels:
+            if True in l:
+                accuracy += 1
+        return accuracy / len(labels)

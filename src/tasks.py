@@ -132,6 +132,11 @@ class SequenceClassificationTask(Task):
 
 class LanguageModelingTask(Task):
 
+    def __init__(self, model, bias_types, templates, group_token, label_name, input_processor=None, output_processor=None, no_cuda=False, topk=5):
+        super().__init__(model, bias_types, templates, group_token, label_name, input_processor, output_processor, no_cuda)
+        self.topk = topk
+
+
     def get_mask_position(self, input_ids):
         "Finds the position of the [MASK] in the input"
         mask_id = self.input_processor.tokenizer.convert_tokens_to_ids(self.input_processor.tokenizer.mask_token)
@@ -168,7 +173,7 @@ class LanguageModelingTask(Task):
                         output = self.model(**input)
 
                         # Extract the necessary score for the current definition word
-                        target_term_probs = self.output_processor.process_output(output.logits, template[self.label_name], self.input_processor.tokenizer, batch_index, token_index)
+                        target_term_probs, is_in_top_k = self.output_processor.process_output(output.logits, template[self.label_name], self.input_processor.tokenizer, batch_index, token_index, self.topk)
 
                         scores.append(
                             TaskOutput(
@@ -177,7 +182,7 @@ class LanguageModelingTask(Task):
                                 def_word=def_word,
                                 group=group.group_name,
                                 bias_type=bias_type.bias_type_name,
-                                gold_label=template[self.label_name]
+                                gold_label=is_in_top_k
                             )
                         )
         

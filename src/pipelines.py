@@ -101,9 +101,9 @@ class TextualInferencePipeline(TaskSpecificPipeline):
 
 
 class LanguageModelingPipeline(TaskSpecificPipeline):
-    def __init__(self, model, tokenizer, bias_path, template_path, fillings_path):
+    def __init__(self, model, tokenizer, bias_path, template_path, fillings_path, topk=5):
         self.generic_init(model, tokenizer, bias_path, template_path, fillings_path)
         self.input_processor = SingleInputProcessor(self.tokenizer, self.template_processor.input_names)
         self.output_processor = MaskedLanguageModelingOutputProcessor()
-        self.task = LanguageModelingTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
+        self.task = LanguageModelingTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor, topk=topk)
         
