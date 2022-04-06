@@ -1,3 +1,4 @@
+import re, string, collections
 import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from src.metrics.distances import singleton_data_type, set_data_type
@@ -127,3 +128,97 @@ class AccuracyForLM_Score(ScoringFunction):
             if True in l:
                 accuracy += 1
         return accuracy / len(labels)
+
+
+
+    
+
+
+class QA_Score(ScoringFunction):
+    def normalize_answer(self, s):
+        """Lower text and remove punctuation, articles and extra whitespace."""
+        def remove_articles(text):
+            regex = re.compile(r'\b(a|an|the)\b', re.UNICODE)
+            return re.sub(regex, ' ', text)
+        def white_space_fix(text):
+            return ' '.join(text.split())
+        def remove_punc(text):
+            exclude = set(string.punctuation)
+            return ''.join(ch for ch in text if ch not in exclude)
+        def lower(text):
+            return text.lower()
+        return white_space_fix(remove_articles(remove_punc(lower(s))))
+
+
+    def get_tokens(self, s):
+        if not s: return []
+        return self.normalize_answer(s).split()
+
+
+    def compute_exact(self, a_gold, a_pred):
+        return int(self.normalize_answer(a_gold) == self.normalize_answer(a_pred))
+
+
+    def compute_f1(self, a_gold, a_pred):
+        gold_toks = self.get_tokens(a_gold)
+        pred_toks = self.get_tokens(a_pred)
+        common = collections.Counter(gold_toks) & collections.Counter(pred_toks)
+        num_same = sum(common.values())
+        if len(gold_toks) == 0 or len(pred_toks) == 0:
+            # If either is no-answer, then F1 is 1 if they agree, 0 otherwise
+            return int(gold_toks == pred_toks)
+        if num_same == 0:
+            return 0
+        precision = 1.0 * num_same / len(pred_toks)
+        recall = 1.0 * num_same / len(gold_toks)
+        f1 = (2 * precision * recall) / (precision + recall)
+        return f1
+
+
+
+
+class F1ForQA_Score(QA_Score):
+    def __init__(self):
+        super().__init__("F1 for QA", set_data_type)
+    
+    def __call__(self, predictions, labels):
+        res = []
+        for i in range(len(predictions)):
+            res.append(self.compute_f1(labels[i], predictions[i]))
+        return res
+
+
+
+class AverageF1ForQA_Score(QA_Score):
+    def __init__(self):
+        super().__init__("Average F1 for QA", singleton_data_type)
+    
+    def __call__(self, predictions, labels):
+        res = []
+        for i in range(len(predictions)):
+            res.append(self.compute_f1(labels[i], predictions[i]))
+        return sum(res) / len(res)
+
+
+
+class ExactMatchForQA_Score(QA_Score):
+    def __init__(self):
+        super().__init__("EM for QA", set_data_type)
+    
+    def __call__(self, predictions, labels):
+        res = []
+        for i in range(len(predictions)):
+            res.append(self.compute_exact(labels[i], predictions[i]))
+        return res
+
+
+
+class AverageExactMatchForQA_Score(QA_Score):
+    def __init__(self):
+        super().__init__("Average EM for QA", singleton_data_type)
+    
+    def __call__(self, predictions, labels):
+        res = []
+        for i in range(len(predictions)):
+            res.append(self.compute_exact(labels[i], predictions[i]))
+        return sum(res) / len(res)
