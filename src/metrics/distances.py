@@ -16,7 +16,7 @@ class Distance:
 
 class AbsoluteDistance(Distance):
     def __init__(self):
-        super().__init__("Absolute Distance", singleton_data_type, ["pcm", "bcm"])
+        super().__init__("Absolute Distance", singleton_data_type, ["pcm", "bcm", "vbcm"])
 
     def __call__(self, x, y):
         return abs(x - y)
@@ -27,7 +27,7 @@ class AbsoluteDistance(Distance):
 
 class WassersteinDistance(Distance):
     def __init__(self):
-        super().__init__("Wasserstein Distance", set_data_type, ["pcm", "bcm"])
+        super().__init__("Wasserstein Distance", set_data_type, ["pcm", "bcm", "vbcm"])
 
     def __call__(self, x, y):
         return wd(x, y)
