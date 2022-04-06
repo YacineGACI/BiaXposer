@@ -49,6 +49,8 @@ class SoftmaxOutputProcessor(OutputProcessor):
 
 
 
+
+
 class MaskedLanguageModelingOutputProcessor(OutputProcessor):
 
     def process_output(self, output, target_terms, tokenizer, batch_index, token_index, topk):
@@ -67,35 +69,57 @@ class MaskedLanguageModelingOutputProcessor(OutputProcessor):
                 top_res.append(False)
         
         return res, top_res
-            
+
 
 
 
 class QuestionAsnweringOutputProcessor(OutputProcessor):
-
     def __init__(self, tokenizer):
-        self.tokenizer = tokenizer
         super().__init__()
+        self.tokenizer = tokenizer
 
 
-
-    def process_output(self, output, input, target_terms):
+    def process_output(self, output, input):
         start_logits = output.start_logits
         end_logits = output.end_logits
 
-        start_probs = torch.softmax(start_logits, dim=1)
-        end_probs = torch.softmax(end_logits, dim=1)
+        start_index = torch.argmax(start_logits)
+        end_index = torch.argmax(end_logits)
 
-        sep_token_id = self.tokenizer.convert_tokens_to_ids(self.tokenizer.sep_token)
+        answer_ids = input["input_ids"].squeeze()[start_index:end_index + 1].tolist()
 
-        res = {}
-        for t in target_terms:
-            current_term_tokens = self.tokenizer(" " + t) # Plus space because Roberta changes the token id when it is first in in the input 
-            term_start_position, term_end_position = find_span_edges(input['input_ids'], current_term_tokens['input_ids'], sep_token_id)
-            this_term_score = start_probs[0, term_start_position] + end_probs[0, term_end_position]
-            res[t] = this_term_score.item()
+        return self.tokenizer.decode(answer_ids).strip(" ")
+        
 
-        return res
+            
+
+
+
+# class QuestionAsnweringOutputProcessor(OutputProcessor):
+
+#     def __init__(self, tokenizer):
+#         self.tokenizer = tokenizer
+#         super().__init__()
+
+
+
+#     def process_output(self, output, input, target_terms):
+#         start_logits = output.start_logits
+#         end_logits = output.end_logits
+
+#         start_probs = torch.softmax(start_logits, dim=1)
+#         end_probs = torch.softmax(end_logits, dim=1)
+
+#         sep_token_id = self.tokenizer.convert_tokens_to_ids(self.tokenizer.sep_token)
+
+#         res = {}
+#         for t in target_terms:
+#             current_term_tokens = self.tokenizer(" " + t) # Plus space because Roberta changes the token id when it is first in in the input 
+#             term_start_position, term_end_position = find_span_edges(input['input_ids'], current_term_tokens['input_ids'], sep_token_id)
+#             this_term_score = start_probs[0, term_start_position] + end_probs[0, term_end_position]
+#             res[t] = this_term_score.item()
+
+#         return res
 
 
 

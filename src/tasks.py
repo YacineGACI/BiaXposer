@@ -1,7 +1,6 @@
 import tqdm
 
 import torch
-from transformers import pipeline
 
 from src.inputs import SingleInputProcessor, DoubleInputProcessor, MultipleChoiceInputProcessor
 from src.outputs import SoftmaxOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor, MultipleChoiceOutputProcessor
@@ -187,6 +186,62 @@ class LanguageModelingTask(Task):
                         )
         
         return scores
+
+
+
+
+
+
+
+class QuestionAnsweringTask(Task):
+
+    def run(self):
+
+        scores = []
+        
+        for template_id, template in tqdm.tqdm(enumerate(self.templates)):
+
+            for bias_type in self.bias_types:
+
+                for group in bias_type.groups.values():
+
+                    for def_word in group.definition_words:
+                        
+                        # Replace the <Group> token with current definition word
+                        input = {k:v if k not in self.input_processor.input_names else self.replace_mask(v, self.group_token, def_word) for k, v in template.items()}
+
+                        # Tokenize the input
+                        input = self.input_processor.tokenize(input)
+
+                        # Make tensors and batches of 1
+                        input = {k: torch.tensor(v).unsqueeze(0).to(self.device) for k, v in input.items()}
+
+                        # Use the model for predictions
+                        output = self.model(**input)
+
+                        # Process the output
+                        answer = self.output_processor.process_output(output, input)
+
+                        scores.append(
+                            TaskOutput(
+                                output=answer,
+                                sentence_id=template_id,
+                                def_word=def_word,
+                                group=group.group_name,
+                                bias_type=bias_type.bias_type_name,
+                                gold_label=template[self.label_name]
+                            )
+                        )
+        
+        return scores
+
+
+
+
+
+
+
+
 
 
 
