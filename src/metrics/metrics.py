@@ -480,3 +480,72 @@ class VectorBackgroundComparisonMetric(BiasMetric):
                     ) / num_sentences
 
         return bias_scores
+
+
+
+
+
+class VectorMultigroupComparisonMetric(BiasMetric):
+
+    def __init__(self):
+        super().__init__("vmcm")
+    
+    def bias_group(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
+        processed_task_output = self.process_task_output_to_group(task_output)
+
+        bias_scores = {}
+
+        for bias_type in processed_task_output.keys():
+
+            scores = distance_fct(
+                [
+                    scoring_fct(
+                        processed_task_output[bias_type][g]["predictions"],
+                        processed_task_output[bias_type][g]["labels"]
+                    ) for g in processed_task_output[bias_type].keys()
+                ]
+            )
+
+            bias_scores[bias_type] = {list(processed_task_output[bias_type].keys())[i]: scores[i] for i in range(len(scores))}
+        
+        return bias_scores
+
+
+
+
+
+    def bias_counterfactual(self, task_output, scoring_fct, distance_fct):
+        self.check_matching_eval_parameters(scoring_fct, distance_fct)
+        
+        processed_task_output = self.process_task_output_to_counterfactual(task_output)
+
+        bias_scores = {}
+
+        for bias_type in processed_task_output.keys():
+            num_sentences = len(processed_task_output[bias_type].keys())
+
+            if bias_type not in bias_scores.keys():
+                bias_scores[bias_type] = {}
+
+            for s_id in processed_task_output[bias_type].keys():
+                scores = distance_fct(
+                    [
+                        scoring_fct(
+                            processed_task_output[bias_type][s_id][g]["predictions"],
+                            processed_task_output[bias_type][s_id][g]["labels"]
+                        ) for g in processed_task_output[bias_type][s_id].keys()
+                    ]
+                )
+
+                if len(bias_scores[bias_type].keys()) == 0:
+                    for g in processed_task_output[bias_type][s_id].keys():
+                        bias_scores[bias_type][g] = 0
+
+                for i in range(len(scores)):
+                    bias_scores[bias_type][list(processed_task_output[bias_type][s_id].keys())[i]] += scores[i] / num_sentences
+
+        return bias_scores
+
+

@@ -1,6 +1,6 @@
 from src.templates.template_processor import TemplateProcessor
 from src.biases import read_biases
-from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric, VectorBackgroundComparisonMetric
+from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric, VectorBackgroundComparisonMetric, VectorMultigroupComparisonMetric
 from src.inputs import SingleInputProcessor, DoubleInputProcessor
 from src.outputs import PredictionOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor
 from src.tasks import SequenceClassificationTask, LanguageModelingTask, QuestionAnsweringTask
@@ -26,7 +26,7 @@ class TaskSpecificPipeline:
         self.bias_types = None
         self.task_scores = None
         self.metric = None
-        self.all_eval_types = ["pcm", "bcm", "mcm", "vbcm"]
+        self.all_eval_types = ["pcm", "bcm", "mcm", "vbcm", "vmcm"]
         self.all_eval_modes = ["group", "counterfactual"]
 
         self.read_bias_types()
@@ -64,6 +64,8 @@ class TaskSpecificPipeline:
             self.metric = MultigroupComparisonMetric()
         elif type == "vbcm":
             self.metric = VectorBackgroundComparisonMetric()
+        elif type == "vmcm":
+            self.metric = VectorMultigroupComparisonMetric()
         else:
             raise ValueError
 

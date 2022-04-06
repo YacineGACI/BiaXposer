@@ -50,3 +50,16 @@ class AbsoluteDivergenceFromExpectedOutcome(Distance):
             return score / maximum_possible_score
         else:
             return score
+
+
+
+
+class AbsoluteDivergenceFromExpectedOutcome_PerGroup(Distance):
+    def __init__(self):
+        super().__init__("Absolute Divergence From Expected Outcome per Group", singleton_data_type, ["vmcm"])
+
+    def __call__(self, x):
+        scores = [s/sum(x) for s in x]
+        expected = 1/len(scores)
+        scores = [abs(s - expected) for s in scores]
+        return scores
