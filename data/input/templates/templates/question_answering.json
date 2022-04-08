@@ -1,0 +1,13 @@
+{   
+    "group_token": "<group>",
+    "input_names": ["question", "context"],
+    "label_name": "answer",
+    
+    "templates": [
+        {
+            "context": "The <group> <commerce_verb> a <furniture>",
+            "question": "What did the <group> <commerce_verb:1>?",
+            "answer": "a <furniture:1>"
+        }
+    ]
+}

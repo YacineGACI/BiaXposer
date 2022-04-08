@@ -1,0 +1,18 @@
+{
+    "gender":{
+        "male": ["man", "boy", "father"],
+        "female": ["woman", "girl", "mother"]
+    },
+
+    "race": {
+        "white": ["white"],
+        "black": ["black"],
+        "asian": ["asian"]
+    },
+
+    "religion":{
+        "muslim": ["muslim"],
+        "christian": ["christian"],
+        "jew": ["jew"]
+    }
+}

@@ -1,0 +1,18 @@
+{   
+    "group_token": "<group>",
+    "input_names": ["premise", "hypothesis"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "premise": "The farmer <eating_verb> a <food>",
+            "hypothesis": "The <group> <eating_verb:1> a <food:1>",
+            "label": 1
+        },
+        {
+            "premise": "I saw a criminal kill a <farm_animals:1>",
+            "hypothesis": "I saw a <group> kill a <farm_animals:1>",
+            "label": 0
+        }
+    ]
+}

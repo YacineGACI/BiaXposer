@@ -1,0 +1,16 @@
+{   
+    "group_token": "<group>",
+    "input_names": ["text"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "text": "<group> <eating_verb> a <food>",
+            "label": 1
+        },
+        {
+            "text": "I saw a <group> kill a <farm_animals>",
+            "label": 0
+        }
+    ]
+}
