@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from src.metrics.distances import AbsoluteDistance, WassersteinDistance, AbsoluteDivergenceFromExpectedOutcome, AbsoluteDivergenceFromExpectedOutcome_PerGroup
-from src.metrics.scoring import F1_Score, Accuracy_Score, Precision_Score, Recall_Score, ClassPrediction_Score, AverageClassPrediction_Score, ScoringFunction
-from src.pipelines import SentimentClassificationPipeline, TextualInferencePipeline
+from biaxposer.metrics.distances import AbsoluteDistance, WassersteinDistance, AbsoluteDivergenceFromExpectedOutcome, AbsoluteDivergenceFromExpectedOutcome_PerGroup
+from biaxposer.metrics.scoring import F1_Score, Accuracy_Score, Precision_Score, Recall_Score, ClassPrediction_Score, AverageClassPrediction_Score, ScoringFunction
+from biaxposer.pipelines import SentimentClassificationPipeline, TextualInferencePipeline
 
 
 

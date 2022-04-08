@@ -104,7 +104,8 @@ bias_path = "data/input/biases.json"
 ## 2/ Load your models from Huggingface
 ```python
 model_name = "yoshitomo-matsubara/bert-base-uncased-mnli"
-AutoTokenizer.from_pretrained(model_name)
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 ```
 

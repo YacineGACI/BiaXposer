@@ -1,5 +1,4 @@
 import torch
-from src.utils import find_span_edges
 
 class OutputProcessor:
     def __init__(self):
@@ -124,11 +123,11 @@ class QuestionAsnweringOutputProcessor(OutputProcessor):
 
 
 
-class MultipleChoiceOutputProcessor(OutputProcessor):
-    def process_output(self, output):
-        logits = output.logits.squeeze()
-        probs = torch.softmax(logits, dim=0)
+# class MultipleChoiceOutputProcessor(OutputProcessor):
+#     def process_output(self, output):
+#         logits = output.logits.squeeze()
+#         probs = torch.softmax(logits, dim=0)
         
-        return [p.item() for p in probs]
+#         return [p.item() for p in probs]
 
 

@@ -1,9 +1,9 @@
-from src.templates.template_processor import TemplateProcessor
-from src.biases import read_biases
-from src.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric, VectorBackgroundComparisonMetric, VectorMultigroupComparisonMetric
-from src.inputs import SingleInputProcessor, DoubleInputProcessor
-from src.outputs import PredictionOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor
-from src.tasks import SequenceClassificationTask, LanguageModelingTask, QuestionAnsweringTask
+from biaxposer.templates.template_processor import TemplateProcessor
+from biaxposer.biases import read_biases
+from biaxposer.metrics.metrics import PairwiseComparisonMetric, BackgroundComparisonMetric, MultigroupComparisonMetric, VectorBackgroundComparisonMetric, VectorMultigroupComparisonMetric
+from biaxposer.inputs import SingleInputProcessor, DoubleInputProcessor
+from biaxposer.outputs import PredictionOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor
+from biaxposer.tasks import SequenceClassificationTask, LanguageModelingTask, QuestionAnsweringTask
 
 
 class TaskSpecificPipeline:

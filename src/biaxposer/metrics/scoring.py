@@ -1,7 +1,7 @@
 import re, string, collections
 import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
-from src.metrics.distances import singleton_data_type, set_data_type
+from biaxposer.metrics.distances import singleton_data_type, set_data_type
 
 class ScoringFunction:
     def __init__(self, name=None, data_type=None):

@@ -1,8 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 
-from src.pipelines import LanguageModelingPipeline
-from src.metrics.scoring import AverageLikelihood_Score, AverageLikelihood_Score
-from src.metrics.distances import AbsoluteDistance, AbsoluteDivergenceFromExpectedOutcome
+from biaxposer.pipelines import LanguageModelingPipeline
+from biaxposer.metrics.scoring import AverageLikelihood_Score, AverageLikelihood_Score
+from biaxposer.metrics.distances import AbsoluteDistance, AbsoluteDivergenceFromExpectedOutcome
 
 
 # Define paths for templates

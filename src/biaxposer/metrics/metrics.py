@@ -1,5 +1,5 @@
 import itertools
-from src.utils import EvalParametrizationError
+from biaxposer.utils import EvalParametrizationError
 
 class BiasMetric:
     def __init__(self, name):
