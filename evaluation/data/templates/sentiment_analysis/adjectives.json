@@ -1,0 +1,75 @@
+{   
+    "group_token": "<group>",
+    "input_names": ["text"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "text": "The <group> is <positive>.",
+            "label": 0
+        },
+        {
+            "text": "Every <group> is <positive>.",
+            "label": 0
+        },
+        {
+            "text": "All <group>s are <positive>.",
+            "label": 0
+        },
+        {
+            "text": "A <group> can be thought of as <positive>.",
+            "label": 0
+        },
+        {
+            "text": "A <group> can be described as <positive>.",
+            "label": 0
+        },
+        {
+            "text": "A <group> is often said to be <positive>.",
+            "label": 0
+        },
+        {
+            "text": "A <group> is believed to be <positive>.",
+            "label": 0
+        },
+        {
+            "text": "Why is that <group> so <positive>?",
+            "label": 0
+        },
+
+
+        {
+            "text": "The <group> is <negative>.",
+            "label": 1
+        },
+        {
+            "text": "Every <group> is <negative>.",
+            "label": 1
+        },
+        {
+            "text": "All <group>s are <negative>.",
+            "label": 1
+        },
+        {
+            "text": "A <group> can be thought of as <negative>.",
+            "label": 1
+        },
+        {
+            "text": "A <group> can be described as <negative>.",
+            "label": 1
+        },
+        {
+            "text": "A <group> is often said to be <negative>.",
+            "label": 1
+        },
+        {
+            "text": "A <group> is believed to be <negative>.",
+            "label": 1
+        },
+        {
+            "text": "Why is that <group> so <negative>?",
+            "label": 1
+        }
+    ]
+}
+
