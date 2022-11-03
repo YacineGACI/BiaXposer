@@ -42,7 +42,7 @@ class TemplateProcessor:
 
     def get_all_files(self, path, check_extension=False):
         """
-        Returns @path is @path is a file, or all files recursively inside @path if @path is a directory
+        Returns @path if @path is a file, or all files recursively inside @path if @path is a directory
         """
         all_files = []
         if os.path.isfile(path):

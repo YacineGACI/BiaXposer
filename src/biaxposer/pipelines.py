@@ -31,6 +31,7 @@ class TaskSpecificPipeline:
 
         self.read_bias_types()
         self.generate_templates()
+        print("{} Test cases".format(len(self.templates)))
 
     
 
@@ -75,6 +76,14 @@ class TaskSpecificPipeline:
             return self.metric.bias_counterfactual(self.task_scores, scoring_fct, distance_fct)
         else:
             raise ValueError
+
+    
+    def compute_failure_rate(self, threshold):
+        if self.task_scores is None:
+            self.run_task()
+        metric = PairwiseComparisonMetric()
+        return metric.compute_failure_rate(self.task_scores, threshold)
+        
 
 
     

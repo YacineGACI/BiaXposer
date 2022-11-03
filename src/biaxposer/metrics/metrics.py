@@ -82,6 +82,37 @@ class BiasMetric:
 
 
 
+    def compute_failure_rate(self, task_output, threshold):
+        processed_task_output = self.process_task_output_to_counterfactual(task_output)
+
+        failure_rates = {
+            k: 0 for k in processed_task_output.keys()
+        }
+
+        for bias_type in processed_task_output.keys():
+            num_sentences = len(processed_task_output[bias_type].keys())
+            num_failures = 0
+
+            for s_id in processed_task_output[bias_type].keys():
+                groups = processed_task_output[bias_type][s_id].keys()
+                group_combinations = list(itertools.combinations(groups, 2))
+
+                mean_differnces = 0
+                for g1, g2 in group_combinations:
+                    # Compute Mean of predictions for all def words of a given group
+                    prediction_g1 = np.mean(processed_task_output[bias_type][s_id][g1]["predictions"], 0)
+                    prediction_g2 = np.mean(processed_task_output[bias_type][s_id][g2]["predictions"], 0)
+                    label_id = processed_task_output[bias_type][s_id][g1]["labels"][0]
+
+                    mean_differnces += abs(prediction_g1[label_id] - prediction_g2[label_id]) / len(group_combinations)
+
+                if mean_differnces > threshold:
+                    num_failures += 1  
+            
+            failure_rates[bias_type] = num_failures / num_sentences
+
+        return failure_rates
+
 
 
 
