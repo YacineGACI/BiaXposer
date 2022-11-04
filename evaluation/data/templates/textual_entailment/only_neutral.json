@@ -1,0 +1,28 @@
+{   
+    "group_token": "<group>",
+    "input_names": ["premise", "hypothesis"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "premise": "All <occupations> are <sociability_pos>.",
+            "hypothesis": "All <group> are <sociability_pos:1>.",
+            "label": 1
+        },
+        {
+            "premise": "I heard a <polarized_nouns_neg> <violence_verb> a cat.",
+            "hypothesis": "I heard a <group> <violence_verb:1> a cat.",
+            "label": 1
+        },
+        {
+            "premise": "The farmer <eating_verb> a <food>.",
+            "hypothesis": "The <group> <eating_verb:1> a <food:1>.",
+            "label": 1
+        },
+        {
+            "premise": "A <polarized_nouns_pos> <helping_verb> me when I was needy.",
+            "hypothesis": "A <group> <helping_verb:1> me when I was needy.",
+            "label": 1
+        }
+    ]
+}
