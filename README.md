@@ -37,18 +37,30 @@ To ease the process of generating many test examples, BiaXposer provides an expr
 }
 ```
 
-Here, *<group>* represents a social group and will be replaced by words describing social groups to form a new sentence each time. *<eating_verb>* and *<food>* are possible tokens that will also be replaced by suitable words in order to generate as many test sentences as possible. Of course, you can create your own tokens.
 
-The label defines the gold class. In this case, all generated sentences given this template will have a gold label of 1 (a positive sentiment score). If you are interested in a finer-grained analysis, e.g. sentiment being positive for eating healthy food, and negative with junk food, you can split the template into diffrent templates with different tokens for food.
+
+Here, *<eating_verb>* and *<food>* are placeholder tokens that will be replaced by corresponding filling words in order to generate as many test sentences as possible. Users of BiaXposer provide their own placeholder tokens and filling words (or n-grams) by creating text files listing these words. File names must match the name of placeholder tokens. BiaXposer generates all combinations of templates and filling words.
+
+*<group>* is a special placeholder to denote social groups, and will be replaced by words describing different demographics (groups) in order to assess fairness of NLP models. 
+
+The label defines the gold class. In this case, all generated sentences from the above template will have a gold label of 1 (a positive sentiment score). If you are interested in a finer-grained analysis, e.g. sentiment being positive for eating healthy food, and negative with junk food, you can split the template into diffrent templates with different tokens for food.
 
 ```json
-{
-    "text": "<group> <eating_verb> a <healthy_food>",
-    "label": 1
-},
-{
-    "text": "<group> <eating_verb> a <junk_food>",
-    "label": 0
+{   
+    "group_token": "<group>",
+    "input_names": ["text"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "text": "<group> <eating_verb> a <healthy_food>",
+            "label": 1
+        },
+        {
+            "text": "<group> <eating_verb> a <junk_food>",
+            "label": 0
+        }
+    ]
 }
 ```
 
@@ -116,7 +128,7 @@ from biaxposer.pipelines import TextualInferencePipeline
 pipeline = TextualInferencePipeline(model, tokenizer, bias_path, template_path, fillings_path)
 ```
 
-## Choose the scoring and distance functions
+## 4/ Choose the scoring and distance functions
 ```python
 from biaxposer.metrics.distances import AbsoluteDistance
 from biaxposer.metrics.scoring import F1_Score
@@ -125,12 +137,23 @@ scoring_function = F1_Score("macro")
 distance = AbsoluteDistance()
 ```
 
-## Choose your evaluation type and mode and compute bias :smiley:
+## 5/ Choose your evaluation type and mode and compute bias :smiley:
 ```python
 eval_type = "pcm"
 eval_mode = "counterfactual"
 
 bias_score = pipeline.compute_bias(eval_type, eval_mode, scoring_function, distance)
 ```
+
+
+## *Failure Rate
+In BiaXposer, we provide a special metric called *failure rate* that computes the percentage of test cases where models produce unfair outcomes. We define an unfair outcome by an absolute difference of predictions related to different demographics greather than a prespecidied threhold. In other words, if $$o_{g1}$$ and $$o_{g2}$$ are the predictions of your NLP model for two different social groups *g1* and *g2* respectively given a test case, we declare the outcome as unfair if $$|o_{g1} - o_{g2}| > \theta$$ where $$\theta$$ is a parameter to the failure rate metric.
+
+```python
+failure_threshold = 0.05
+failure_rate = pipeline.compute_failure_rate(failure_threshold)
+```
+
+
 
 That's it. You are ready to expose hidden biases in your NLP models!
