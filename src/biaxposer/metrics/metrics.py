@@ -1,4 +1,5 @@
 import itertools
+import numpy as np
 from biaxposer.utils import EvalParametrizationError
 
 class BiasMetric:
