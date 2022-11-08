@@ -124,7 +124,7 @@ class TemplateProcessor:
 
     def process_templates(self):
         self.generations = []
-        for t in self.all_templates:
+        for t_id, t in enumerate(self.all_templates):
             concatenation_values = self.concatentaion_token.join([v for k, v in t.items() if type(v) == str])
             concatenation_keys = [k for k, v in t.items() if type(v) == str]
 
@@ -140,6 +140,7 @@ class TemplateProcessor:
                     new_generation = {}
                 for i in range(len(concatenation_keys)):
                     new_generation[concatenation_keys[i]] = g[i]
+                new_generation["t_id"] = t_id
                 self.generations.append(new_generation)
 
             

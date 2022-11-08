@@ -5,13 +5,14 @@ import torch
 
 
 class TaskOutput:
-    def __init__(self, output, sentence_id, def_word, group, bias_type, gold_label):
+    def __init__(self, output, sentence_id, def_word, group, bias_type, gold_label, template_id):
         self.output = output
         self.sentence_id = sentence_id
         self.def_word = def_word
         self.group = group
         self.bias_type = bias_type
         self.gold_label = gold_label
+        self.template_id = template_id
 
 
     def __str__(self):
@@ -21,9 +22,10 @@ class TaskOutput:
             def_word: {},
             group: {},
             bias_type: {},
-            gold_label: {}
+            gold_label: {},
+            template_id: {}
         
-        '''.format(self.output, self.sentence_id, self.def_word, self.group, self.bias_type, self.gold_label)
+        '''.format(self.output, self.sentence_id, self.def_word, self.group, self.bias_type, self.gold_label, self.template_id)
 
 
     def __repr__(self):
@@ -109,7 +111,8 @@ class SequenceClassificationTask(Task):
                                 def_word=def_word,
                                 group=group.group_name,
                                 bias_type=bias_type.bias_type_name,
-                                gold_label=template[self.label_name]
+                                gold_label=template[self.label_name],
+                                template_id=template["t_id"]
                             )
                         )
         

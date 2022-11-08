@@ -73,6 +73,35 @@ class BiasMetric:
         return result
 
 
+    
+    def process_task_output_to_failure_rate(self, task_output):
+        """
+        Transforms @task_output into a dict
+        bias_type -> template_id -> sentence_id -> group -> scores 
+        """
+        result = {}
+        for o in task_output:
+            if o.bias_type not in result.keys():
+                result[o.bias_type] = {}
+
+            if o.template_id not in result[o.bias_type].keys():
+                result[o.bias_type][o.template_id] = {}
+
+            if o.sentence_id not in result[o.bias_type][o.template_id].keys():
+                result[o.bias_type][o.template_id][o.sentence_id] = {}
+            
+            if o.group not in result[o.bias_type][o.template_id][o.sentence_id].keys():
+                result[o.bias_type][o.template_id][o.sentence_id][o.group] = {
+                    "predictions": [],
+                    "labels": []
+                }
+
+            result[o.bias_type][o.template_id][o.sentence_id][o.group]["predictions"].append(o.output)
+            result[o.bias_type][o.template_id][o.sentence_id][o.group]["labels"].append(o.gold_label)
+        
+        return result
+
+
 
 
     def check_matching_eval_parameters(self, scoring_fct, distance_fct):
@@ -83,36 +112,56 @@ class BiasMetric:
 
 
 
-    def compute_failure_rate(self, task_output, threshold):
-        processed_task_output = self.process_task_output_to_counterfactual(task_output)
+
+    
+
+
+
+    def compute_failure_rate(self, task_output, threshold, show_details=False):
+        processed_task_output = self.process_task_output_to_failure_rate(task_output)
 
         failure_rates = {
             k: 0 for k in processed_task_output.keys()
         }
 
+        failure_rate_per_template = {}
+
         for bias_type in processed_task_output.keys():
-            num_sentences = len(processed_task_output[bias_type].keys())
+            num_sentences = 0
             num_failures = 0
 
-            for s_id in processed_task_output[bias_type].keys():
-                groups = processed_task_output[bias_type][s_id].keys()
-                group_combinations = list(itertools.combinations(groups, 2))
+            for t_id in processed_task_output[bias_type].keys():
+                num_sentences_for_current_template = 0
+                num_failures_for_current_template = 0
 
-                mean_differnces = 0
-                for g1, g2 in group_combinations:
-                    # Compute Mean of predictions for all def words of a given group
-                    prediction_g1 = np.mean(processed_task_output[bias_type][s_id][g1]["predictions"], 0)
-                    prediction_g2 = np.mean(processed_task_output[bias_type][s_id][g2]["predictions"], 0)
-                    label_id = processed_task_output[bias_type][s_id][g1]["labels"][0]
+                for s_id in processed_task_output[bias_type][t_id].keys():
+                    groups = processed_task_output[bias_type][t_id][s_id].keys()
+                    group_combinations = list(itertools.combinations(groups, 2))
 
-                    mean_differnces += abs(prediction_g1[label_id] - prediction_g2[label_id]) / len(group_combinations)
+                    mean_differnces = 0
+                    for g1, g2 in group_combinations:
+                        # Compute Mean of predictions for all def words of a given group
+                        prediction_g1 = np.mean(processed_task_output[bias_type][t_id][s_id][g1]["predictions"], 0)
+                        prediction_g2 = np.mean(processed_task_output[bias_type][t_id][s_id][g2]["predictions"], 0)
+                        label_id = processed_task_output[bias_type][t_id][s_id][g1]["labels"][0]
 
-                if mean_differnces > threshold:
-                    num_failures += 1  
-            
+                        mean_differnces += abs(prediction_g1[label_id] - prediction_g2[label_id]) / len(group_combinations)
+
+                    if mean_differnces > threshold:
+                        num_failures += 1  
+                        num_failures_for_current_template += 1
+
+                    num_sentences_for_current_template += 1
+                    num_sentences += 1
+                
+                if t_id in failure_rate_per_template.keys():
+                    failure_rate_per_template[t_id][bias_type] = num_failures_for_current_template / num_sentences_for_current_template
+                else:
+                    failure_rate_per_template[t_id] = {bias_type:num_failures_for_current_template / num_sentences_for_current_template}
+                
             failure_rates[bias_type] = num_failures / num_sentences
 
-        return failure_rates
+        return failure_rates if not show_details else {"global": failure_rates, "per_template": failure_rate_per_template}
 
 
 
@@ -208,6 +257,8 @@ class PairwiseComparisonMetric(BiasMetric):
             bias_scores[bias_type] = current_bias_score
 
         return bias_scores
+
+
 
 
 

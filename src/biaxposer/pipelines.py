@@ -78,11 +78,12 @@ class TaskSpecificPipeline:
             raise ValueError
 
     
-    def compute_failure_rate(self, threshold):
+    def compute_failure_rate(self, threshold, show_details=False):
         if self.task_scores is None:
             self.run_task()
         metric = PairwiseComparisonMetric()
-        return metric.compute_failure_rate(self.task_scores, threshold)
+        return metric.compute_failure_rate(self.task_scores, threshold, show_details=show_details)
+        
         
 
 
