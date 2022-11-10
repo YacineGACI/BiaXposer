@@ -179,7 +179,8 @@ class LanguageModelingTask(Task):
                                 def_word=def_word,
                                 group=group.group_name,
                                 bias_type=bias_type.bias_type_name,
-                                gold_label=is_in_top_k
+                                gold_label=is_in_top_k,
+                                template_id=template["t_id"]
                             )
                         )
         
@@ -227,7 +228,8 @@ class QuestionAnsweringTask(Task):
                                 def_word=def_word,
                                 group=group.group_name,
                                 bias_type=bias_type.bias_type_name,
-                                gold_label=template[self.label_name]
+                                gold_label=template[self.label_name],
+                                template_id=template["t_id"]
                             )
                         )
         
