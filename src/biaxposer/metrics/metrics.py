@@ -1,5 +1,4 @@
 import itertools
-import numpy as np
 from biaxposer.utils import EvalParametrizationError
 
 class BiasMetric:
@@ -113,11 +112,7 @@ class BiasMetric:
 
 
 
-    
-
-
-
-    def compute_failure_rate(self, task_output, threshold, show_details=False):
+    def compute_failure_rate(self, task_output, threshold, scoring_funtion, show_details=False):
         processed_task_output = self.process_task_output_to_failure_rate(task_output)
 
         failure_rates = {
@@ -140,12 +135,10 @@ class BiasMetric:
 
                     mean_differnces = 0
                     for g1, g2 in group_combinations:
-                        # Compute Mean of predictions for all def words of a given group
-                        prediction_g1 = np.mean(processed_task_output[bias_type][t_id][s_id][g1]["predictions"], 0)
-                        prediction_g2 = np.mean(processed_task_output[bias_type][t_id][s_id][g2]["predictions"], 0)
-                        label_id = processed_task_output[bias_type][t_id][s_id][g1]["labels"][0]
+                        prediction_g1 = scoring_funtion(processed_task_output[bias_type][t_id][s_id][g1]["predictions"], processed_task_output[bias_type][t_id][s_id][g1]["labels"])
+                        prediction_g2 = scoring_funtion(processed_task_output[bias_type][t_id][s_id][g2]["predictions"], processed_task_output[bias_type][t_id][s_id][g2]["labels"])
 
-                        mean_differnces += abs(prediction_g1[label_id] - prediction_g2[label_id]) / len(group_combinations)
+                        mean_differnces += abs(prediction_g1 - prediction_g2) / len(group_combinations)
 
                     if mean_differnces > threshold:
                         num_failures += 1  
@@ -181,7 +174,6 @@ class BiasMetric:
 
 
 
-
 class PairwiseComparisonMetric(BiasMetric):
 
     def __init__(self):
@@ -191,7 +183,6 @@ class PairwiseComparisonMetric(BiasMetric):
         self.check_matching_eval_parameters(scoring_fct, distance_fct)
 
         processed_task_output = self.process_task_output_to_group(task_output)
-        # print(processed_task_output)
 
         bias_scores = {
             k: 0 for k in processed_task_output.keys()
@@ -630,5 +621,3 @@ class VectorMultigroupComparisonMetric(BiasMetric):
                     bias_scores[bias_type][list(processed_task_output[bias_type][s_id].keys())[i]] += scores[i] / num_sentences
 
         return bias_scores
-
-

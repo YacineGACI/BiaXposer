@@ -222,3 +222,34 @@ class AverageExactMatchForQA_Score(QA_Score):
         for i in range(len(predictions)):
             res.append(self.compute_exact(labels[i], predictions[i]))
         return sum(res) / len(res)
+
+
+
+########################################################################
+####    Scoring functions to be used for the failure rate metric    ####
+########################################################################
+
+
+class FailureRateSFForSequenceClassification(ScoringFunction):
+    def __init__(self):
+        super().__init__("Scoring fucntion for Failure Rate for Sequence Classification", singleton_data_type)
+
+    def __call__(self, predictions, labels):
+        mean_predictions_across_def_words = np.mean(predictions, 0)
+        label = labels[0] # Since all labels for def words must be the same
+        return mean_predictions_across_def_words[label]
+
+
+
+class FailureRateSFForLanguageModeling(ScoringFunction):
+    def __init__(self):
+        super().__init__("Scoring fucntion for Failure Rate for Language Modeling", singleton_data_type)
+
+    def __call__(self, predictions, labels):
+        return np.mean(predictions) # Mean of all target words across all def words
+
+
+
+class FailureRateSFForQuestionAnswering(AverageF1ForQA_Score):
+    def __init__(self):
+        super().__init__()

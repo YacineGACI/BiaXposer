@@ -4,14 +4,16 @@ from biaxposer.metrics.metrics import PairwiseComparisonMetric, BackgroundCompar
 from biaxposer.inputs import SingleInputProcessor, DoubleInputProcessor
 from biaxposer.outputs import PredictionOutputProcessor, MaskedLanguageModelingOutputProcessor, QuestionAsnweringOutputProcessor
 from biaxposer.tasks import SequenceClassificationTask, LanguageModelingTask, QuestionAnsweringTask
+from biaxposer.metrics.scoring import FailureRateSFForSequenceClassification, FailureRateSFForLanguageModeling, FailureRateSFForQuestionAnswering
 
 
 class TaskSpecificPipeline:
-    def __init__(self, model, tokenizer, bias_path, template_path, fillings_path, task, input_processor, output_processor):
+    def __init__(self, model, tokenizer, bias_path, template_path, fillings_path, task, input_processor, output_processor, scoring_function_for_failure_rate):
         self.generic_init(model, tokenizer, bias_path, template_path, fillings_path)
         self.task = task
         self.input_processor = input_processor
         self.output_processor = output_processor
+        self.scoring_function_for_failure_rate = scoring_function_for_failure_rate
         
 
     
@@ -77,13 +79,13 @@ class TaskSpecificPipeline:
         else:
             raise ValueError
 
-    
+
+        
     def compute_failure_rate(self, threshold, show_details=False):
         if self.task_scores is None:
             self.run_task()
         metric = PairwiseComparisonMetric()
-        return metric.compute_failure_rate(self.task_scores, threshold, show_details=show_details)
-        
+        return metric.compute_failure_rate(self.task_scores, threshold, scoring_funtion=self.scoring_function_for_failure_rate , show_details=show_details)
         
 
 
@@ -97,6 +99,7 @@ class SentimentClassificationPipeline(TaskSpecificPipeline):
         self.input_processor = SingleInputProcessor(self.tokenizer, self.template_processor.input_names)
         self.output_processor = PredictionOutputProcessor()
         self.task = SequenceClassificationTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
+        self.scoring_function_for_failure_rate = FailureRateSFForSequenceClassification()
 
 
 
@@ -110,6 +113,7 @@ class TextualInferencePipeline(TaskSpecificPipeline):
         self.input_processor = DoubleInputProcessor(self.tokenizer, self.template_processor.input_names)
         self.output_processor = PredictionOutputProcessor()
         self.task = SequenceClassificationTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
+        self.scoring_function_for_failure_rate = FailureRateSFForSequenceClassification()
 
 
 
@@ -120,7 +124,8 @@ class LanguageModelingPipeline(TaskSpecificPipeline):
         self.input_processor = SingleInputProcessor(self.tokenizer, self.template_processor.input_names)
         self.output_processor = MaskedLanguageModelingOutputProcessor()
         self.task = LanguageModelingTask(self.model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor, topk=topk)
-        
+        self.scoring_function_for_failure_rate = FailureRateSFForLanguageModeling()
+
 
 
 class QuestionAnsweringPipeline(TaskSpecificPipeline):
@@ -129,4 +134,4 @@ class QuestionAnsweringPipeline(TaskSpecificPipeline):
         self.input_processor = DoubleInputProcessor(tokenizer, self.template_processor.input_names)
         self.output_processor = QuestionAsnweringOutputProcessor(tokenizer)
         self.task = QuestionAnsweringTask(model, self.bias_types, self.templates, self.template_processor.group_token, self.template_processor.label_name, self.input_processor, self.output_processor)
-        
+        self.scoring_function_for_failure_rate = FailureRateSFForQuestionAnswering()
