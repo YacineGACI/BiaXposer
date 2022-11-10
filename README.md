@@ -28,22 +28,7 @@ Each evaluation type can be used in two different modes:
 BiaXposer does not provide data to test NLP models. It's up to you to define these in the form of templates. Worry not, BiaXposer makes this easy for you.
 
 ## Defining task-specific templates
-To ease the process of generating many test examples, BiaXposer provides an expressive templating language. Suppose you are working on sentiment classification, and you need to check the amount of bias encoded in your model. You may give the following template:
-
-```json
-{
-    "text": "<group> <eating_verb> a <food>",
-    "label": 1
-}
-```
-
-
-
-Here, *<eating_verb>* and *<food>* are placeholder tokens that will be replaced by corresponding filling words in order to generate as many test sentences as possible. Users of BiaXposer provide their own placeholder tokens and filling words (or n-grams) by creating text files listing these words. File names must match the name of placeholder tokens. BiaXposer generates all combinations of templates and filling words.
-
-*<group>* is a special placeholder to denote social groups, and will be replaced by words describing different demographics (groups) in order to assess fairness of NLP models. 
-
-The label defines the gold class. In this case, all generated sentences from the above template will have a gold label of 1 (a positive sentiment score). If you are interested in a finer-grained analysis, e.g. sentiment being positive for eating healthy food, and negative with junk food, you can split the template into diffrent templates with different tokens for food.
+To ease the process of generating many test cases, BiaXposer provides an expressive templating language. Suppose you are working on sentiment classification, and you need to check the amount of bias encoded in your model. You provide the templates in a json file similar to the following:
 
 ```json
 {   
@@ -64,8 +49,48 @@ The label defines the gold class. In this case, all generated sentences from the
 }
 ```
 
+Here, *<eating_verb>*, *<healthy_food>* and *<junk_food>* are placeholder tokens that will be replaced by corresponding filling words (or n-grams) in order to generate as many test sentences as possible from the provided templates. Filling words must also be provided by users of BiaXposer, and will be described later. BiaXposer generates all combinations of templates and filling words to create many test cases at scale.
+
+We note that *<group>* is a special placeholder to denote social groups, and will be replaced by words describing different demographics (groups) in order to assess fairness of NLP models. You can use another placeholder to denote demographics by changing the name of the placeholder in *"group_token"*.
+
+The label defines the gold class for this task (i.e. sentiment classification). In this case, all generated test cases from the first template will have a gold label of 1 (a positive sentiment score). However, all test cases generated from the second template will be associated with a negative sentiment (a label value of 0).
+
+The templates can be adapted to cater for multiple NLP tasks. However, users of BiaXposer must be familiar with the task of interest, its input and output. In the following, we give an example of a json file for templates according to the task of sentence inference.
+
+> **Definition.** Given a premise and a hypothesis, a sentence inference (also called textual entailment) model predicts whether the hypothesis is entailed from the premise (i.e. if the premise is true, the hypothesis must also be true), contradicts the premise, or is neutral to the premise.
+
+```json
+{   
+    "group_token": "<group>",
+    "input_names": ["premise", "hypothesis"],
+    "label_name": "label",
+    
+    "templates": [
+        {
+            "premise": "A <group> <helping_verb> a <person>.",
+            "hypothesis": "The <group> is <positive_morality_adjective>.",
+            "label": 0
+        },
+        {
+            "premise": "A <group> <helping_verb> a <person>.",
+            "hypothesis": "The <group> is <negative_morality_adjective>.",
+            "label": 2
+        },
+        {
+            "premise": "A <group> <helping_verb> a <person>.",
+            "hypothesis": "The <group> is a <occupations>.",
+            "label": 1
+        }
+    ]
+}
+```
+
+In this case, a label score of 0 is for *entailment*, 1 for *neutral* and 2 for *contradiction*. As explained above, all test cases generated from the first template have a gold label of *entailment* (because if someone helps another person, we can say that they are morally good), while the second template generates test cases with a contradiction label. Finally, in the third template, helping someone else has nothing to do with exercising a given profession. Thus, hypotheses generated from the third template are neutral to their respective premises.
+
+
+
 ## Defining filling words
-BiaXposer needs to know about which words to fill which token. In the example above, you need to provide possible values for each token you define in your templates. An example of filling words for *<healthy_food>* is the following:
+In order to fill the templates, there is a need to provide filling words to replace the placeholders. Users of BiaXposer can create their own placeholders, but they must manually provide corresponding filling words to each. An example of filling words for *<healthy_food>* is the following:
 - lettuce
 - fish
 - broccoli
@@ -74,8 +99,15 @@ BiaXposer needs to know about which words to fill which token. In the example ab
 - quinoa bowl
 - blueberry and banana milkshake
 
+To do that, users of BiaXposer must create files bearing the same name of placeholders (File extenion is irrelevant). For the example above, the file must be named *healthy_food* (or *healthy_food.txt*, *healthy_food.yaml*, etc.) Each file contains filling words, one per line. We advise to organize all files for filling words inside a folder.
+
+Moreover, filling word files can be hierarchical. Suppose *healthy_food.txt* and *junk_food.txt* are both inside a folder named *food*. In this case, you can have access to three different placeholders: *<healthy_food>* will be replaced by words in *healthy_food.txt*, *<junk_food>* will be replaced by words in *junk_food.txt*, and *<food>* will be replaced by words both in *healthy_food.txt* and *junk_food.txt*.
+
+Do not create a placeholder named *group* as this token is reserved for social groups and demographics.
+
+
 ## Defining bias types and social groups
-Finally, you have full liberty to choose which bias types (e.g. gender, race, religion, etc.) you are interested in. You need to define a bias type by a list of its constituent social groups, and each group by a list of some identity terms.
+Finally, you have full liberty to choose which bias types to study (e.g. gender, race, religion, etc.). Bias definitions must be included in a json file specifying for each bias type the list of its constituent groups, and for each group a list of identity terms characterizing it. The following is an example of a bias json file.
 
 ```json
 {
@@ -147,13 +179,11 @@ bias_score = pipeline.compute_bias(eval_type, eval_mode, scoring_function, dista
 
 
 ## *Failure Rate
-In BiaXposer, we provide a special metric called *failure rate* that computes the percentage of test cases where models produce unfair outcomes. We define an unfair outcome by an absolute difference of predictions related to different demographics greather than a prespecidied threhold. In other words, if $$o_{g1}$$ and $$o_{g2}$$ are the predictions of your NLP model for two different social groups *g1* and *g2* respectively given a test case, we declare the outcome as unfair if $$|o_{g1} - o_{g2}| > \theta$$ where $$\theta$$ is a parameter to the failure rate metric.
+In BiaXposer, we provide a special metric called *failure rate* that computes the percentage of test cases where models produce unfair outcomes. We define an unfair outcome by an absolute difference of predictions related to different demographics greather than a prespecified threhold. In other words, if $o_{g1}$ and $o_{g2}$ are the predictions of your NLP model for two different social groups *g1* and *g2* respectively given a test case, we declare the outcome as unfair if $|o_{g1} - o_{g2}| > \theta$ where $\theta$ is a parameter to the failure rate metric.
 
 ```python
 failure_threshold = 0.05
 failure_rate = pipeline.compute_failure_rate(failure_threshold)
 ```
-
-
 
 That's it. You are ready to expose hidden biases in your NLP models!
