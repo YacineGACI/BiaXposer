@@ -53,8 +53,9 @@ class TemplateProcessor:
         elif os.path.isdir(path):
             for p, currentDirectory, files in os.walk(path):
                 for file in files:
-                    if not check_extension or file.endswith("." + self.supported_file_type):
-                        all_files.append(os.path.join(p, file))
+                    if not file.startswith("."): # To remove hidden files (as those added by Mac)
+                        if not check_extension or file.endswith("." + self.supported_file_type):
+                            all_files.append(os.path.join(p, file))
         else:
             raise FileNotFoundError
         
