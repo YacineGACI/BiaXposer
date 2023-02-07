@@ -4,7 +4,7 @@ import logging, json
 
 def read_biases(filepath):
     biases = []
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding="utf-8") as f:
         data = json.load(f)
         for bias_type, groups in data.items():
             biases.append(

@@ -64,7 +64,7 @@ class TemplateProcessor:
 
 
     def read_fillings_file(self, filepath):
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding="utf-8") as f:
             data = f.readlines()
         return data
 
@@ -107,7 +107,7 @@ class TemplateProcessor:
 
 
     def read_templates_file(self, filepath):
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding="utf-8") as f:
             data = json.load(f)
         return data["group_token"], data["input_names"], data["label_name"], data["templates"]
 

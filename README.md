@@ -179,7 +179,7 @@ bias_score = pipeline.compute_bias(eval_type, eval_mode, scoring_function, dista
 
 
 ## *Failure Rate
-In BiaXposer, we provide a special metric called *failure rate* that computes the percentage of test cases where models produce unfair outcomes. We define an unfair outcome by an absolute difference of predictions related to different demographics greather than a prespecified threhold. In other words, if $o_{g1}$ and $o_{g2}$ are the predictions of your NLP model for two different social groups *g1* and *g2* respectively given a test case, we declare the outcome as unfair if $|o_{g1} - o_{g2}| > \theta$ where $\theta$ is a parameter to the failure rate metric.
+In BiaXposer, we provide a special metric called *failure rate* that computes the percentage of test cases where models produce unfair outcomes. We define an unfair outcome by an absolute difference of predictions related to different demographics greather than a prespecified threshold. In other words, if $o_{g1}$ and $o_{g2}$ are the predictions of your NLP model for two different social groups *g1* and *g2* respectively given a test case, we declare the outcome as unfair if $|o_{g1} - o_{g2}| > \theta$ where $\theta$ is a parameter to the failure rate metric.
 
 ```python
 failure_threshold = 0.05
